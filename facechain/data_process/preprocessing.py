@@ -202,14 +202,18 @@ def get_mask_head(result):
 class Blipv2():
     def __init__(self):
         self.model = DeepDanbooru()
+        # 人体美肤
         self.skin_retouching = pipeline('skin-retouching-torch', model='damo/cv_unet_skin_retouching_torch', model_revision='v1.0.1')
-        # ToDo: face detection
+        # ToDo: face detection 本模型可以检测输入图片中人脸的位置。
         self.face_detection = pipeline(task=Tasks.face_detection, model='damo/cv_ddsar_face-detection_iclr23-damofd', model_revision='v1.1')
         # self.mog_face_detection_func = pipeline(Tasks.face_detection, 'damo/cv_resnet101_face-detection_cvpr22papermogface')
+        # 人体分割
         self.segmentation_pipeline = pipeline(Tasks.image_segmentation,
                                               'damo/cv_resnet101_image-multiple-human-parsing', model_revision='v1.0.1')
+        # 人脸属性识别模型FairFace 检测性别和年龄
         self.fair_face_attribute_func = pipeline(Tasks.face_attribute_recognition,
                                                  'damo/cv_resnet34_face-attribute-recognition_fairface', model_revision='v2.0.2')
+        # 本模型可以检测输入图片中人脸的5点关键点和对应的人脸质量质量分
         self.facial_landmark_confidence_func = pipeline(Tasks.face_2d_keypoints,
                                                         'damo/cv_manual_facial-landmark-confidence_flcm', model_revision='v2.5')
 
@@ -258,6 +262,7 @@ class Blipv2():
                     print('Detecting no face, do not use image {}.'.format(imname))
                     continue
                 else:
+                    # 脸的位置
                     keypoints = result_det['keypoints'][0]
 
                 im = rotate(im, keypoints)

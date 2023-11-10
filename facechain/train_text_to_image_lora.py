@@ -144,6 +144,9 @@ def softmax(x):
 
 
 def get_rot(image):
+    """
+    获取正向人脸
+    """
     model_dir = snapshot_download('Cherrytest/rot_bgr',
                                   revision='v1.0.0')
     model_path = os.path.join(model_dir, 'rot_bgr.onnx')
@@ -646,7 +649,7 @@ def main():
                 bias=args.lora_text_encoder_bias,
             )
             text_encoder = LoraModel(config, text_encoder)
-    elif args.use_swift:                
+    elif args.use_swift:
         if not is_swift_available():
             raise ValueError(
                 'Please install swift by `pip install ms-swift` to use efficient_tuners.'
@@ -1104,7 +1107,7 @@ def main():
                             )
 
                 del pipeline
-                torch.cuda.empty_cache() 
+                torch.cuda.empty_cache()
 
     # Save the lora layers
     accelerator.wait_for_everyone()

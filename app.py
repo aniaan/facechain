@@ -46,7 +46,7 @@ def concatenate_images(images):
         concatenated_image[0:img.shape[0], x_offset:x_offset + img.shape[1], :] = img
         x_offset += img.shape[1]
     return concatenated_image
-    
+
 def select_function(evt: gr.SelectData):
     name = evt.value[1] if isinstance(evt.value, list) else evt.value
     matched = list(filter(lambda item: name == item['name'], styles))
@@ -77,9 +77,9 @@ def update_pose_model(pose_image, pose_model):
 
 def train_lora_fn(base_model_path=None, revision=None, sub_path=None, output_img_dir=None, work_dir=None, photo_num=0):
     torch.cuda.empty_cache()
-    
+
     lora_r = 4
-    lora_alpha = 32 
+    lora_alpha = 32
     max_train_steps = min(photo_num * 200, 800)
 
     if platform.system() == 'Windows':
@@ -170,7 +170,7 @@ def launch_pipeline(uuid,
             raise gr.Error("请登陆后使用! (Please login first)")
         else:
             uuid = 'qw'
-    
+
     # Check base model
     if base_model_index == None:
         raise gr.Error('请选择基模型(Please select the base model)!')
@@ -203,7 +203,7 @@ def launch_pipeline(uuid,
     base_model = base_models[base_model_index]['model_id']
     revision = base_models[base_model_index]['revision']
     sub_path = base_models[base_model_index]['sub_path']
-    
+
     before_queue_size = 0
     before_done_count = inference_done_count
     matched = list(filter(lambda item: style_model == item['name'], styles))
@@ -249,7 +249,7 @@ def launch_pipeline(uuid,
     instance_data_dir = join_worker_data_dir(uuid, 'training_data', character_model, user_model)
     lora_model_path = join_worker_data_dir(uuid, character_model, user_model)
 
-    gen_portrait = GenPortrait(pose_model_path, pose_image, use_depth_control, pos_prompt, neg_prompt, style_model_path, 
+    gen_portrait = GenPortrait(pose_model_path, pose_image, use_depth_control, pos_prompt, neg_prompt, style_model_path,
                                multiplier_style, multiplier_human, use_main_model,
                                use_face_swap, use_post_process,
                                use_stylization)
@@ -274,13 +274,13 @@ def launch_pipeline(uuid,
     outputs_RGB = []
     for out_tmp in outputs:
         outputs_RGB.append(cv2.cvtColor(out_tmp, cv2.COLOR_BGR2RGB))
-        
+
     save_dir = join_worker_data_dir(uuid, 'inference_result', base_model, user_model)
     if lora_choice == 'preset':
         save_dir = os.path.join(save_dir, 'style_' + style_model)
     else:
         save_dir = os.path.join(save_dir, 'lora_' + os.path.basename(lora_choice).split('.')[0])
-    
+
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
     # use single to save outputs
@@ -290,7 +290,7 @@ def launch_pipeline(uuid,
         # count the number of images in the folder
         num = len(os.listdir(os.path.join(save_dir, 'single')))
         cv2.imwrite(os.path.join(save_dir, 'single', str(num) + '.png'), img)
-    
+
     if len(outputs) > 0:
         result = concatenate_images(outputs)
         if not os.path.exists(os.path.join(save_dir, 'concat')):
@@ -368,7 +368,7 @@ def launch_pipeline_inpaint(uuid,
         user_model_A = None
     if user_model_B == '不重绘该人物(Do not inpaint this character)':
         user_model_B = None
-           
+
     if user_model_A is not None:
         instance_data_dir_A = join_worker_data_dir(uuid, 'training_data', character_model, user_model_A)
         lora_model_path_A = join_worker_data_dir(uuid, character_model, user_model_A)
@@ -420,7 +420,7 @@ def launch_pipeline_inpaint(uuid,
     for i, out_tmp in enumerate(outputs):
         cv2.imwrite('{}_{}.png'.format(out_path, i), out_tmp)
 
-    if len(outputs) > 0:   
+    if len(outputs) > 0:
         yield ["生成完毕(Generation done)！", outputs_RGB]
     else:
         yield ["生成失败，请重试(Generation failed, please retry)！", outputs_RGB]
@@ -438,12 +438,12 @@ def get_previous_image_result(uuid):
     image_results = glob(os.path.join(save_dir, '**/single/*.png'), recursive=True)
     save_dir_new = join_worker_data_dir(uuid, 'inference_result')
     image_results_new = glob(os.path.join(save_dir_new, '**/single/*.png'), recursive=True)
-    
-    return image_results_old + image_results + image_results_new
-    
 
-def launch_pipeline_talkinghead(uuid, source_image, driven_audio, preprocess='crop', 
-        still_mode=True,  use_enhancer=False, batch_size=1, size=256, 
+    return image_results_old + image_results + image_results_new
+
+
+def launch_pipeline_talkinghead(uuid, source_image, driven_audio, preprocess='crop',
+        still_mode=True,  use_enhancer=False, batch_size=1, size=256,
         pose_style = 0, exp_scale=1.0):
     if not check_ffmpeg():
         raise gr.Error("请先安装ffmpeg，然后刷新网页（Please install ffmpeg, then restart the webpage）")
@@ -463,7 +463,7 @@ def launch_pipeline_talkinghead(uuid, source_image, driven_audio, preprocess='cr
     gen_video = SadTalker(uuid)
 
     with ProcessPoolExecutor(max_workers=5) as executor:
-        future = executor.submit(gen_video, source_image, driven_audio, preprocess, 
+        future = executor.submit(gen_video, source_image, driven_audio, preprocess,
                                 still_mode, use_enhancer, batch_size, size, pose_style, exp_scale)
 
         while not future.done():
@@ -479,7 +479,7 @@ def launch_pipeline_talkinghead(uuid, source_image, driven_audio, preprocess='cr
 
     output = future.result()
 
-    if output:   
+    if output:
         yield ["生成完毕(Generation done)！", output]
     else:
         yield ["生成失败，请重试(Generation failed, please retry)！", output]
@@ -631,7 +631,7 @@ class Trainer:
         # Check Cuda
         if not torch.cuda.is_available():
             raise gr.Error('CUDA不可用(CUDA not available)')
-            
+
         # Check Cuda Memory
         if torch.cuda.is_available():
             device = torch.device("cuda:0")
@@ -642,15 +642,15 @@ class Trainer:
                 del tensor
             except RuntimeError as e:
                 raise gr.Error("目前显存不足18GB，训练失败！")
-                
+
         # Check Instance Valid
         if instance_images is None:
             raise gr.Error('您需要上传训练图片(Please upload photos)!')
-        
+
         # Check output model name
         if not output_model_name:
             raise gr.Error('请指定人物lora的名称(Please specify the character LoRA name)！')
-        
+
         # Limit input Image
         if len(instance_images) > 20:
             raise gr.Error('请最多上传20张训练图片(20 images at most!)')
@@ -696,13 +696,13 @@ class Trainer:
                       photo_num=len(instance_images))
 
         message = '''<center><font size=4>训练已经完成！请切换至 [无限风格形象写真] 标签体验模型效果。</center>
-        
+
         <center><font size=4>(Training done, please switch to the Infinite Style Portrait tab to generate photos.)</center>'''
         print(message)
         return message
 
 
-def flash_model_list(uuid, base_model_index, lora_choice:gr.Dropdown):    
+def flash_model_list(uuid, base_model_index, lora_choice:gr.Dropdown):
 
     base_model_path = base_models[base_model_index]['model_id']
     style_list = base_models[base_model_index]['style_list']
@@ -726,9 +726,9 @@ def flash_model_list(uuid, base_model_index, lora_choice:gr.Dropdown):
     else:
         lora_list = sorted(os.listdir(lora_save_path))
         lora_list = ["preset"] + lora_list
-    
+
     if not os.path.exists(folder_path):
-        if lora_choice == 'preset':  
+        if lora_choice == 'preset':
             return gr.Radio.update(choices=[], value = None), \
                 gr.Gallery.update(value=[(item["img"], item["name"]) for item in sub_styles], visible=True), \
                 gr.Text.update(value=style_list[0], visible=True), \
@@ -746,7 +746,7 @@ def flash_model_list(uuid, base_model_index, lora_choice:gr.Dropdown):
                 file_lora_path_swift = f"{file_path}/unet"
                 if os.path.exists(file_lora_path) or os.path.exists(file_lora_path_swift):
                     folder_list.append(file)
-    
+
     if lora_choice == 'preset':
         return gr.Radio.update(choices=folder_list, value = None), \
             gr.Gallery.update(value=[(item["img"], item["name"]) for item in sub_styles], visible=True), \
@@ -778,7 +778,7 @@ def update_output_model(uuid):
                 file_lora_path_swift = f"{file_path}/unet"
                 if os.path.exists(file_lora_path) or os.path.exists(file_lora_path_swift):
                     folder_list.append(file)
-                    
+
     return gr.Radio.update(choices=folder_list)
 
 def update_output_model_inpaint(uuid):
@@ -814,11 +814,11 @@ def add_file_webcam(instance_images, file):
 
 def webcam_image_open(image):
     image = gr.update(visible=True)
-    return image 
+    return image
 
 def webcam_image_close(image):
     image = gr.update(value=None,visible=False)
-    return image 
+    return image
 
 def update_output_model_tryon(uuid):
     if not uuid:
@@ -871,7 +871,7 @@ def update_output_model_num(num_faces):
         return gr.Radio.update(), gr.Radio.update(visible=False)
     else:
         return gr.Radio.update(), gr.Radio.update(visible=True)
-    
+
 def update_output_image_result(uuid):
     image_list = get_previous_image_result(uuid)
     return gr.Gallery.update(value=image_list), image_list
@@ -894,10 +894,10 @@ def upload_lora_file(uuid, lora_file):
     filename = os.path.basename(lora_file.name)
     newfilepath = os.path.join(temp_lora_dir, filename)
     print("newfilepath: ", newfilepath)
-    
+
     lora_list = sorted(os.listdir(temp_lora_dir))
     lora_list = ["preset"] + lora_list
-    
+
     return gr.Dropdown.update(choices=lora_list, value=filename)
 
 def clear_lora_file(uuid, lora_file):
@@ -906,7 +906,7 @@ def clear_lora_file(uuid, lora_file):
             raise gr.Error("请登陆后使用! (Please login first)")
         else:
             uuid = 'qw'
-    
+
     return gr.Dropdown.update(value="preset")
 
 def change_lora_choice(lora_choice, base_model_index):
@@ -915,7 +915,7 @@ def change_lora_choice(lora_choice, base_model_index):
     for style in style_list:
         matched = list(filter(lambda item: style == item['name'], styles))
         sub_styles.append(matched[0])
-    
+
     if lora_choice == 'preset':
         return gr.Gallery.update(value=[(item["img"], item["name"]) for item in sub_styles], visible=True), \
                gr.Text.update(value=style_list[0])
@@ -928,20 +928,20 @@ def deal_history(uuid, base_model_index=None , user_model=None, lora_choice=None
             raise gr.Error("请登陆后使用! (Please login first)")
         else:
             uuid = 'qw'
-            
+
     if deal_type == "update":
         if (base_model_index is None) or (user_model is None) or (lora_choice is None) or (style_model is None and lora_choice == 'preset'):
             return gr.Gallery.update(value=[], visible=True), gr.Gallery.update(value=[], visible=True) # error triggered by option change, won't pop up warning
-        
+
     if base_model_index is None:
         raise gr.Error('请选择基模型(Please select the base model)!')
     if user_model is None:
-        raise gr.Error('请选择人物lora(Please select the character lora)!')    
+        raise gr.Error('请选择人物lora(Please select the character lora)!')
     if lora_choice is None:
         raise gr.Error('请选择LoRa文件(Please select the LoRa file)!')
     if style_model is None and lora_choice == 'preset':
         raise gr.Error('请选择风格(Please select the style)!')
-    
+
     base_model = base_models[base_model_index]['model_id']
     matched = list(filter(lambda item: style_model == item['name'], styles))
     style_model = matched[0]['name']
@@ -951,10 +951,10 @@ def deal_history(uuid, base_model_index=None , user_model=None, lora_choice=None
         save_dir = os.path.join(save_dir, 'style_' + style_model)
     else:
         save_dir = os.path.join(save_dir, 'lora_' + os.path.basename(lora_choice).split('.')[0])
-    
+
     if not os.path.exists(save_dir):
         return gr.Gallery.update(value=[], visible=True), gr.Gallery.update(value=[], visible=True)
-    
+
     if deal_type == "load" or deal_type == "update":
         single_dir = os.path.join(save_dir, 'single')
         concat_dir = os.path.join(save_dir, 'concat')
@@ -966,12 +966,12 @@ def deal_history(uuid, base_model_index=None , user_model=None, lora_choice=None
         if os.path.exists(concat_dir):
             concat_imgs = sorted(os.listdir(concat_dir))
             concat_imgs = [os.path.join(concat_dir, img) for img in concat_imgs]
-        
+
         return gr.Gallery.update(value=single_imgs, visible=True), gr.Gallery.update(value=concat_imgs, visible=True)
     elif deal_type == "delete":
         shutil.rmtree(save_dir)
         return gr.Gallery.update(value=[], visible=True), gr.Gallery.update(value=[], visible=True)
-    
+
 def train_input():
     trainer = Trainer()
 
@@ -998,7 +998,7 @@ def train_input():
                                          queue=False)
                     webcam.click(webcam_image_open,inputs=image,outputs=image)
                     image.change(add_file_webcam,inputs=[instance_images, image],outputs=instance_images, show_progress=True).then(webcam_image_close,inputs=image,outputs=image)
-                    
+
                     gr.Markdown('''
                         使用说明（Instructions）：
                         ''')
@@ -1047,7 +1047,7 @@ def train_input():
 def inference_input():
     with gr.Blocks() as demo:
         uuid = gr.Text(label="modelscope_uuid", visible=False)
-        
+
         with gr.Row():
             with gr.Column():
                 base_model_list = []
@@ -1055,7 +1055,7 @@ def inference_input():
                     base_model_list.append(BASE_MODEL_MAP[base_model['name']])
 
                 base_model_index = gr.Radio(label="基模型选择(Base model list)", choices=base_model_list, type="index", value=None)
-                
+
                 with gr.Row():
                     with gr.Column(scale=2):
                         user_model = gr.Radio(label="人物LoRA列表(Character LoRAs)", choices=[], type="value")
@@ -1088,8 +1088,8 @@ def inference_input():
                             file_count="single",
                             visible=False,
                         )
-                    
-                    pos_prompt = gr.Textbox(label="提示语(Prompt)", lines=3, 
+
+                    pos_prompt = gr.Textbox(label="提示语(Prompt)", lines=3,
                                             value=generate_pos_prompt(None, styles[0]['add_prompt_style']),
                                             interactive=True)
                     neg_prompt = gr.Textbox(label="负向提示语(Negative Prompt)", lines=3,
@@ -1101,7 +1101,7 @@ def inference_input():
                                                  step=0.05, label='风格权重(Multiplier style)')
                     multiplier_human = gr.Slider(minimum=0, maximum=1.2, value=0.95,
                                                  step=0.05, label='形象权重(Multiplier human)')
-                    
+
                     with gr.Accordion("姿态控制(Pose control)", open=False):
                         with gr.Row():
                             pose_image = gr.Image(source='upload', type='filepath', label='姿态图片(Pose image)', height=250)
@@ -1114,14 +1114,14 @@ def inference_input():
                     num_images = gr.Number(
                         label='生成图片数量(Number of photos)', value=6, precision=1, minimum=1, maximum=6)
                     gr.Markdown('''
-                    注意: 
+                    注意:
                     - 最多支持生成6张图片!(You may generate a maximum of 6 photos at one time!)
                     - 可上传在定义LoRA文件使用, 否则默认使用风格模型的LoRA。(You may upload custome LoRA file, otherwise the LoRA file of the style model will be used by deault.)
                     - 使用自定义LoRA文件需手动输入prompt, 否则可能无法正常触发LoRA文件风格。(You shall provide prompt when using custom LoRA, otherwise desired LoRA style may not be triggered.)
                         ''')
 
         with gr.Row():
-            display_button = gr.Button('开始生成(Start!)')   
+            display_button = gr.Button('开始生成(Start!)')
             with gr.Column():
                 history_button = gr.Button('查看历史(Show history)')
                 load_history_text = gr.Text("load", visible=False)
@@ -1134,30 +1134,30 @@ def inference_input():
             gr.Markdown('生成结果(Result)')
             output_images = gr.Gallery(label='Output', show_label=False).style(columns=3, rows=2, height=600,
                                                                                object_fit="contain")
-            
+
         with gr.Accordion(label="历史生成结果(History)", open=False):
             with gr.Row():
                 single_history = gr.Gallery(label='单张图片(Single image history)')
                 batch_history = gr.Gallery(label='图片组(Batch image history)')
-                
+
         update_history_text = gr.Text("update", visible=False)
-        
+
         gallery.select(select_function, None, style_model, queue=False)
         lora_choice.change(fn=change_lora_choice, inputs=[lora_choice, base_model_index], outputs=[gallery, style_model], queue=False).then(
                            fn=deal_history,
                            inputs=[uuid, base_model_index, user_model, lora_choice, style_model, update_history_text],
                            outputs=[single_history, batch_history],
                            queue=False)
-        
+
         lora_file.upload(fn=upload_lora_file, inputs=[uuid, lora_file], outputs=[lora_choice], queue=False)
         lora_file.clear(fn=clear_lora_file, inputs=[uuid, lora_file], outputs=[lora_choice], queue=False)
-        
+
         style_model.change(update_prompt, style_model, [pos_prompt, multiplier_style, multiplier_human], queue=False).then(
                            fn=deal_history,
                            inputs=[uuid, base_model_index, user_model, lora_choice, style_model, update_history_text],
                            outputs=[single_history, batch_history],
                            queue=False)
-        
+
         pose_image.change(update_pose_model, [pose_image, pose_model], [pose_model, pose_res_image])
         base_model_index.change(fn=flash_model_list,
                                 inputs=[uuid, base_model_index, lora_choice],
@@ -1167,12 +1167,12 @@ def inference_input():
                                 inputs=[uuid, base_model_index, user_model, lora_choice, style_model, update_history_text],
                                 outputs=[single_history, batch_history],
                                 queue=False)
-        
+
         user_model.change(fn=deal_history,
                           inputs=[uuid, base_model_index, user_model, lora_choice, style_model, update_history_text],
                           outputs=[single_history, batch_history],
                           queue=False)
-        
+
         update_button.click(fn=update_output_model,
                       inputs=[uuid],
                       outputs=[user_model],
@@ -1269,7 +1269,7 @@ def inference_talkinghead():
         state_image_list = gr.State(value=image_result_list)
         gr.Markdown("""该标签页的功能基于[SadTalker](https://sadtalker.github.io)实现，要使用该标签页，请按照[教程](https://github.com/modelscope/facechain/tree/main/doc/installation_for_talkinghead_ZH.md)安装相关依赖。\n
                     The function of this tab is implemented based on [SadTalker](https://sadtalker.github.io), to use this tab, you should follow the installation [guide](https://github.com/modelscope/facechain/tree/main/doc/installation_for_talkinghead.md) """)
-        
+
         with gr.Row(equal_height=False):
             with gr.Column(variant='panel'):
                 source_image = gr.Image(label="源图片(source image)", source="upload", type="filepath")
@@ -1280,8 +1280,8 @@ def inference_talkinghead():
                 speaker = gr.Dropdown(choices=list(tts_speakers_map.keys()), value="普通话(中国大陆)-Xiaoxiao-女", label="请根据输入文本选择对应的语言和说话人(Select speaker according the language of input text)")
                 tts = gr.Button('生成音频(Generate audio)')
                 tts.click(fn=text_to_speech_edge, inputs=[input_text, speaker], outputs=[driven_audio])
-                                
-            with gr.Column(variant='panel'): 
+
+            with gr.Column(variant='panel'):
                 with gr.Box():
                     gr.Markdown("设置(Settings)")
                     with gr.Column(variant='panel'):
@@ -1300,7 +1300,7 @@ def inference_talkinghead():
                         gen_video = gr.Video(label="Generated video", format="mp4", width=256)
 
         submit.click(fn=launch_pipeline_talkinghead, inputs=[uuid, source_image, driven_audio, preprocess_type,
-                    is_still_mode, enhancer, batch_size, size_of_image, pose_style, exp_weight], 
+                    is_still_mode, enhancer, batch_size, size_of_image, pose_style, exp_weight],
                     outputs=[infer_progress, gen_video])
         image_results.select(get_selected_image, state_image_list, source_image, queue=False)
         update_button.click(fn=update_output_image_result, inputs=[uuid], outputs=[image_results, state_image_list])
@@ -1317,7 +1317,7 @@ def inference_talkinghead():
                     True,
                     False],
             ]
-            gr.Examples(examples=examples, inputs=[source_image, driven_audio, preprocess_type, is_still_mode, enhancer], 
+            gr.Examples(examples=examples, inputs=[source_image, driven_audio, preprocess_type, is_still_mode, enhancer],
                         outputs=[gen_video],  fn=launch_pipeline_talkinghead, cache_examples=os.getenv('SYSTEM') == 'spaces')
 
     return demo

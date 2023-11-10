@@ -145,7 +145,7 @@ def segment(segmentation_pipeline, img, ksize=0, return_human=False, return_clot
         if return_cloth:
             if ksize > 0:
                 kernel = np.ones((ksize, ksize))
-                soft_mask = cv2.erode(mask_cloth, kernel, iterations=1) 
+                soft_mask = cv2.erode(mask_cloth, kernel, iterations=1)
                 return soft_mask
             else:
                 return mask_cloth
@@ -162,7 +162,7 @@ def segment(segmentation_pipeline, img, ksize=0, return_human=False, return_clot
             if ksize > 0:
                 # kernel_size = int(np.sqrt(np.sum(soft_mask)) * ksize)
                 kernel = np.ones((ksize, ksize))
-                soft_mask = cv2.dilate(soft_mask, kernel, iterations=1)               
+                soft_mask = cv2.dilate(soft_mask, kernel, iterations=1)
         else:
             soft_mask = mask_face
 
@@ -250,7 +250,7 @@ def main_diffusion_inference_tryon(inpaint_image, strength, output_img_size, pos
     trigger_style = '(<fcsks>:10), ' + trigger_styles[attr_idx]
     if attr_idx == 2 or attr_idx == 4:
         neg_prompt += ', children'
-    
+
     neg_prompt += ', blurry, blurry background'
 
     for tag in tags_all:
@@ -263,16 +263,16 @@ def main_diffusion_inference_tryon(inpaint_image, strength, output_img_size, pos
         add_prompt_style = ", ".join(add_prompt_style) + ', '
     else:
         add_prompt_style = ''
-    
+
     print(add_prompt_style)
 
-    if isinstance(inpaint_image, str): 
+    if isinstance(inpaint_image, str):
         inpaint_im = Image.open(inpaint_image)
     else:
         inpaint_im = inpaint_image
     inpaint_im = crop_bottom(inpaint_im, output_img_size)
     w, h = inpaint_im.size
-    
+
     dwprocessor = DWposeDetector(os.path.join(model_dir0, 'dwpose_models'))
     openpose_image, handbox = dwprocessor(np.array(inpaint_im, np.uint8), include_body=True, include_hand=True, include_face=False, return_handbox=True)
     openpose_image = Image.fromarray(openpose_image)
@@ -451,7 +451,7 @@ class GenPortrait_tryon:
             base_model_path = os.path.join(base_model_path, sub_path)
 
         gen_results = main_model_inference(self.inpaint_img, self.strength, 768,
-                                           self.pos_prompt, self.neg_prompt, 
+                                           self.pos_prompt, self.neg_prompt,
                                            self.style_model_path, self.multiplier_style, self.multiplier_human,
                                            self.use_main_model, input_img_dir=input_img_dir,
                                            lora_model_path=lora_model_path, base_model_path=base_model_path)
@@ -477,7 +477,7 @@ def compress_image(input_path, target_size):
     output_path = change_extension_to_jpg(input_path)
 
     image = cv2.imread(input_path)
-    
+
     quality = 95
     try:
         while cv2.imencode('.jpg', image, [cv2.IMWRITE_JPEG_QUALITY, quality])[1].size > target_size:

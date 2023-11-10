@@ -134,7 +134,7 @@ def main_diffusion_inference(pos_prompt, neg_prompt,
     pipe = merge_lora(pipe, lora_style_path, multiplier_style, from_safetensor=True)
     pipe = merge_lora(pipe, lora_human_path, multiplier_human, from_safetensor=lora_human_path.endswith('safetensors'))
     print(f'multiplier_style:{multiplier_style}, multiplier_human:{multiplier_human}')
-    
+
     train_dir = str(input_img_dir) + '_labeled'
     add_prompt_style = []
     f = open(os.path.join(train_dir, 'metadata.jsonl'), 'r')
@@ -175,7 +175,7 @@ def main_diffusion_inference(pos_prompt, neg_prompt,
                     add_prompt_style.append(tag)
 
 
-    
+
     if len(add_prompt_style) > 0:
         add_prompt_style = ", ".join(add_prompt_style) + ', '
     else:
@@ -208,7 +208,7 @@ def main_diffusion_inference_pose(pose_model_path, pose_image,
     pipe = merge_lora(pipe, lora_style_path, multiplier_style, from_safetensor=True)
     pipe = merge_lora(pipe, lora_human_path, multiplier_human, from_safetensor=False)
     print(f'multiplier_style:{multiplier_style}, multiplier_human:{multiplier_human}')
-    
+
     train_dir = str(input_img_dir) + '_labeled'
     add_prompt_style = []
     f = open(os.path.join(train_dir, 'metadata.jsonl'), 'r')
@@ -300,7 +300,7 @@ def main_diffusion_inference_multi(pose_model_path, pose_image,
     pipe = merge_lora(pipe, lora_style_path, multiplier_style, from_safetensor=True)
     pipe = merge_lora(pipe, lora_human_path, multiplier_human, from_safetensor=False)
     print(f'multiplier_style:{multiplier_style}, multiplier_human:{multiplier_human}')
-    
+
     train_dir = str(input_img_dir) + '_labeled'
     add_prompt_style = []
     f = open(os.path.join(train_dir, 'metadata.jsonl'), 'r')
@@ -391,7 +391,7 @@ def select_high_quality_face(input_img_dir):
     for img_name in os.listdir(input_img_dir):
         if img_name.endswith('jsonl') or img_name.startswith('.ipynb') or img_name.startswith('.safetensors'):
             continue
-        
+
         if img_name.endswith('jpg') or img_name.endswith('png'):
             abs_img_name = os.path.join(input_img_dir, img_name)
             face_quality_score = face_quality_func(abs_img_name)[OutputKeys.SCORES]
@@ -429,6 +429,7 @@ def post_process_fn(use_post_process, swap_results_ori, selected_face, num_gen_i
     if use_post_process:
         sim_list = []
         ## TODO
+        # 相似度
         face_recognition_func = pipeline(Tasks.face_recognition, 'damo/cv_ir_face-recognition-ood_rts', model_revision='v2.5')
         face_det_func = pipeline(task=Tasks.face_detection, model='damo/cv_ddsar_face-detection_iclr23-damofd', model_revision='v1.1')
         swap_results = []
